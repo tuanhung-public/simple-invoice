@@ -1,59 +1,76 @@
 # SimpleInvoice
 
-Full-stack invoice demo: **NestJS** backend + **Next.js** frontend.
+Full-stack invoice demo (monorepo): **NestJS** backend + **Next.js** frontend.
 
 | Folder | Role |
 |--------|------|
-| [`backend/`](./backend) | NestJS API, Prisma, Docker Compose (Postgres) |
+| [`backend/`](./backend) | NestJS API, Prisma, Dockerfiles |
 | [`frontend/`](./frontend) | Next.js UI |
 
-## Quick start (Docker)
+## Run with Docker (recommended)
+
+From the repository root:
 
 ```bash
 git clone https://github.com/tuanhung-public/simple-invoice.git
 cd simple-invoice
-cp backend/.env.example backend/.env
-docker compose --env-file backend/.env up --build
+docker compose up
 ```
 
-Or from `backend/` (canonical compose file lives there too):
+No `.env` copy is required — Compose uses safe demo defaults. Optional overrides: create a root `.env` (see `backend/.env.example`).
 
-```bash
-cd backend
-cp .env.example .env
-docker compose up --build
-```
-
-- API: `http://localhost:3001` (Swagger `/docs`)
-- Web: `http://localhost:3000`
-
-**Do not commit `backend/.env` or `frontend/.env.local`.** Use the `.env.example` files.
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:3000 |
+| Backend API | http://localhost:3001 |
+| Swagger | http://localhost:3001/api/docs |
+| Postgres | localhost:5433 |
 
 ## Default login
 
-- `reviewer@101digital.io` / `Password123!`
+- Email: `reviewer@101digital.io`
+- Password: `Password123!`
 
-## Local frontend (optional)
+On backend start: migrations run and the database is seeded automatically.
+
+## Run without full Docker stack
 
 ```bash
+# Terminal 1 — Postgres
+cd backend
+docker compose up -d db
+
+# Terminal 2 — API
+cp .env.example .env   # only needed for local npm (not for docker compose up)
+npm install
+npx prisma migrate dev
+npm run seed
+npm run start:dev
+
+# Terminal 3 — Web
 cd frontend
 cp .env.example .env.local
 npm install
 npm run dev
 ```
 
+## Seed
+
+```bash
+cd backend && npm run seed
+```
+
 ## Tests
 
 ```bash
-# Backend unit
 cd backend && npm test
-
-# Backend e2e (DB up + migrated + seeded)
 cd backend && docker compose up -d db && npx prisma migrate deploy && npm run seed && npm run test:e2e
-
-# Frontend
 cd frontend && npm test
 ```
+
+## Architecture / assumptions
+
+See [`backend/README.md`](./backend/README.md).
 
 ## Known limitations
 

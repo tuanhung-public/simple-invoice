@@ -1,29 +1,14 @@
 # SimpleInvoice Backend
 
-NestJS + Prisma + PostgreSQL backend for the **101 Digital SimpleInvoice** assessment.
+NestJS + Prisma + PostgreSQL for the **101 Digital SimpleInvoice** assessment.
 
-This repository is the **packaging entrypoint**: it contains `docker-compose.yml` that also builds the sibling **frontend**.
-
-## Clone both repositories (required for Docker)
+This project is a **monorepo**. Prefer starting the full stack from the **repository root**:
 
 ```bash
-mkdir simple-invoice && cd simple-invoice
-git clone <BACKEND_REPO_URL> backend
-git clone <FRONTEND_REPO_URL> frontend
-cd backend
-cp .env.example .env   # edit secrets — never commit .env
-docker compose up --build
+docker compose up
 ```
 
-Expected sibling layout:
-
-```text
-simple-invoice/
-├── backend/      # this repo (compose lives here)
-└── frontend/     # frontend repo
-```
-
-### Ports (defaults)
+## Ports (defaults)
 
 | Service | URL |
 |---------|-----|
@@ -32,7 +17,7 @@ simple-invoice/
 | Swagger | http://localhost:3001/api/docs |
 | Postgres | localhost:5433 |
 
-### Default reviewer login
+## Default reviewer login
 
 - Email: `reviewer@101digital.io`
 - Password: `Password123!`
@@ -41,13 +26,13 @@ On backend container start: migrations run and the database is seeded automatica
 
 ---
 
-## Run locally (without full Docker stack)
+## Run locally (API only)
 
 ```bash
 # From backend/
 cp .env.example .env
 
-# Start only Postgres (uses this repo's compose)
+# Start only Postgres
 docker compose up -d db
 
 npm install
@@ -73,8 +58,6 @@ npm run dev
 npm run seed
 ```
 
-Seeds the Appendix A sample invoice, ~30 additional invoices, and the reviewer user above.
-
 ---
 
 ## Tests
@@ -89,7 +72,7 @@ npm test
 
 ```bash
 docker compose up -d db
-npx prisma migrate deploy   # or: npx prisma migrate dev
+npx prisma migrate deploy
 npm run seed
 npm run test:e2e
 ```
@@ -98,21 +81,21 @@ npm run test:e2e
 
 ## Environment
 
-All secrets come from `.env` (see `.env.example`). Do **not** commit `.env`.
+- Full-stack Docker uses Compose defaults (override with a root `.env` if needed).
+- Local `npm run start:dev` uses `backend/.env` (from `.env.example`).
+- Do **not** commit real `.env` files.
 
-Compose reads `env_file: .env` — JWT and DB passwords are not hard-coded in `docker-compose.yml`.
-
-Each Compose service has its own Dockerfile:
+Dockerfiles:
 
 - `Dockerfile` — Backend
-- `../frontend/Dockerfile` — Frontend (sibling repo)
-- `docker/db/Dockerfile` — Postgres (thin wrapper over official image)
+- `../frontend/Dockerfile` — Frontend
+- `docker/db/Dockerfile` — Postgres
 
 ---
 
 ## Architecture decisions / assumptions
 
-- Two separate repos; compose lives in **backend** and expects `../frontend`.
+- Monorepo (`backend/` + `frontend/`); root `docker-compose.yml` starts all services.
 - Frontend is **Next.js** (React + TypeScript) + Ant Design.
 - **Customer** is a separate table; create finds/creates by email.
 - **Overdue** is derived at read time; DB only stores Draft / Pending / Paid.
@@ -127,5 +110,3 @@ Each Compose service has its own Dockerfile:
 - Create supports **one** line item only (schema allows more later).
 - No update/delete invoice endpoints (out of assessment scope).
 - JWT is stored in browser `localStorage` (assessment client-side token requirement).
-- Full-stack Docker requires both repos cloned as siblings named `backend` and `frontend`.
-- Reviewers who clone **only** this repo can still run backend + DB via compose, but the **frontend** service build will fail until `../frontend` exists.
