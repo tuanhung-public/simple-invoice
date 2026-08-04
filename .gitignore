@@ -1,8 +1,10 @@
 # env / secrets
 .env
 .env.*
-!.env.example
 !**/.env.example
+
+# local notes (not for submission)
+docs/
 
 # deps & build
 node_modules/

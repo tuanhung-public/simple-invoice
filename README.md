@@ -6,7 +6,6 @@ Full-stack invoice demo: **NestJS** backend + **Next.js** frontend.
 |--------|------|
 | [`backend/`](./backend) | NestJS API, Prisma, Docker Compose (Postgres) |
 | [`frontend/`](./frontend) | Next.js UI |
-| [`docs/`](./docs) | Use-case notes |
 
 ## Quick start (Docker)
 
