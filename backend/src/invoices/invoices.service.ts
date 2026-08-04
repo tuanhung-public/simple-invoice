@@ -10,6 +10,7 @@ import {
   assertDueDateOnOrAfterInvoiceDate,
   calculateInvoiceTotals,
   deriveInvoiceStatus,
+  endOfUtcDay,
   startOfUtcDay,
 } from '../common/invoice-math';
 import { PrismaService } from '../prisma/prisma.service';
@@ -48,6 +49,12 @@ export class InvoicesService {
       discount,
       totalPaid: 0,
     });
+
+    if (totals.totalAmount < 0) {
+      throw new BadRequestException([
+        'discount cannot exceed subtotal plus tax',
+      ]);
+    }
 
     const currencySymbol =
       CURRENCY_SYMBOLS[dto.currency] ?? `${dto.currency} `;
@@ -125,10 +132,14 @@ export class InvoicesService {
 
   async findAll(query: ListInvoicesQueryDto) {
     const page = query.page ?? 1;
-    const pageSize = query.pageSize ?? 10;
+    const pageSize = query.pageSize ?? 15;
     const sortBy = query.sortBy ?? 'invoiceDate';
     const ordering = query.ordering ?? 'DESC';
     const today = startOfUtcDay(new Date());
+
+    if (query.fromDate && query.toDate && query.fromDate > query.toDate) {
+      throw new BadRequestException(['fromDate must be on or before toDate']);
+    }
 
     const where: Prisma.InvoiceWhereInput = {};
 
@@ -147,10 +158,10 @@ export class InvoicesService {
     if (query.fromDate || query.toDate) {
       where.invoiceDate = {};
       if (query.fromDate) {
-        where.invoiceDate.gte = new Date(query.fromDate);
+        where.invoiceDate.gte = startOfUtcDay(new Date(query.fromDate));
       }
       if (query.toDate) {
-        where.invoiceDate.lte = new Date(query.toDate);
+        where.invoiceDate.lte = endOfUtcDay(new Date(query.toDate));
       }
     }
 

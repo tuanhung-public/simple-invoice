@@ -97,10 +97,12 @@ Dockerfiles:
 
 - Monorepo (`backend/` + `frontend/`); root `docker-compose.yml` starts all services.
 - Frontend is **Next.js** (React + TypeScript) + Ant Design.
-- **Customer** is a separate table; create finds/creates by email.
+- **Customer** is a separate table; create **upserts by email** (case-insensitive). Reusing an existing customer email updates that customer's name/mobile/address — email is the unique business key.
 - **Overdue** is derived at read time; DB only stores Draft / Pending / Paid.
 - Filtering `Draft` / `Pending` excludes past-due rows (those appear under `Overdue`).
-- Totals are calculated only on the server.
+- Totals are calculated only on the server (default tax **10%**, range **0–1000%**; discount **0** when omitted).
+- Discount cannot exceed subtotal + tax (total must be ≥ 0).
+- List `toDate` includes the full UTC day; default `pageSize` is **15** (max 100).
 - Duplicate `invoiceNumber`: pre-check + Prisma `P2002` → HTTP 409.
 
 ---

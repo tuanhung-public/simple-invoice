@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsDateString,
   IsEmail,
@@ -9,12 +9,26 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Max,
   Min,
   ValidateNested,
 } from 'class-validator';
 
+function trimString({ value }: { value: unknown }) {
+  return typeof value === 'string' ? value.trim() : value;
+}
+
+function trimOptionalString({ value }: { value: unknown }) {
+  if (typeof value !== 'string') {
+    return value;
+  }
+  const trimmed = value.trim();
+  return trimmed === '' ? undefined : trimmed;
+}
+
 class CreateInvoiceItemDto {
   @ApiProperty({ example: 'Honda RC150' })
+  @Transform(trimString)
   @IsString()
   @IsNotEmpty()
   name!: string;
@@ -34,31 +48,37 @@ class CreateInvoiceItemDto {
 
 export class CreateInvoiceDto {
   @ApiProperty({ example: 'Paul' })
+  @Transform(trimString)
   @IsString()
   @IsNotEmpty()
   customerName!: string;
 
   @ApiProperty({ example: 'paul@101digital.io' })
+  @Transform(trimString)
   @IsEmail()
   customerEmail!: string;
 
   @ApiPropertyOptional({ example: '947717364111' })
   @IsOptional()
+  @Transform(trimOptionalString)
   @IsString()
   customerMobile?: string;
 
   @ApiPropertyOptional({ example: 'Singapore' })
   @IsOptional()
+  @Transform(trimOptionalString)
   @IsString()
   customerAddress?: string;
 
   @ApiProperty({ example: 'IV1780488206995' })
+  @Transform(trimString)
   @IsString()
   @IsNotEmpty()
   invoiceNumber!: string;
 
   @ApiPropertyOptional({ example: '#5721662' })
   @IsOptional()
+  @Transform(trimOptionalString)
   @IsString()
   invoiceReference?: string;
 
@@ -77,6 +97,7 @@ export class CreateInvoiceDto {
 
   @ApiPropertyOptional({ example: 'Invoice is issued to Kanglee' })
   @IsOptional()
+  @Transform(trimOptionalString)
   @IsString()
   description?: string;
 
@@ -85,11 +106,12 @@ export class CreateInvoiceDto {
   @Type(() => CreateInvoiceItemDto)
   item!: CreateInvoiceItemDto;
 
-  @ApiPropertyOptional({ example: 10, default: 10 })
+  @ApiPropertyOptional({ example: 10, default: 10, minimum: 0, maximum: 1000 })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(0)
+  @Max(1000)
   taxPercent?: number;
 
   @ApiPropertyOptional({ example: 0, default: 0 })

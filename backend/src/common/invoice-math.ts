@@ -55,6 +55,20 @@ export function startOfUtcDay(date: Date): Date {
   );
 }
 
+export function endOfUtcDay(date: Date): Date {
+  return new Date(
+    Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      23,
+      59,
+      59,
+      999,
+    ),
+  );
+}
+
 export const CURRENCY_SYMBOLS: Record<string, string> = {
   AUD: 'AU$',
   USD: '$',

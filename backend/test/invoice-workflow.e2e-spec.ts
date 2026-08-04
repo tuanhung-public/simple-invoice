@@ -30,7 +30,7 @@ describe('Invoice workflow (e2e)', () => {
     await app.close();
   });
 
-  it('logs in, creates an invoice, and finds it in the list', async () => {
+  it('logs in, creates an invoice, loads detail, and finds it in the list', async () => {
     const loginRes = await request(app.getHttpServer())
       .post('/auth/login')
       .send({
@@ -68,6 +68,35 @@ describe('Invoice workflow (e2e)', () => {
     expect(createRes.body.totalAmount).toBe(330);
     expect(createRes.body.invoiceSubTotal).toBe(300);
     expect(createRes.body.totalTax).toBe(30);
+
+    const invoiceId = createRes.body.invoiceId as string;
+    expect(invoiceId).toBeTruthy();
+
+    const detailRes = await request(app.getHttpServer())
+      .get(`/invoices/${invoiceId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    expect(detailRes.body).toMatchObject({
+      invoiceId,
+      invoiceNumber,
+      status: 'Draft',
+      totalAmount: 330,
+      customer: {
+        fullname: 'E2E Customer',
+      },
+      items: [{ name: 'E2E Item', quantity: 2, rate: 150 }],
+    });
+
+    await request(app.getHttpServer())
+      .get('/invoices/not-a-uuid')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(400);
+
+    await request(app.getHttpServer())
+      .get('/invoices/00000000-0000-4000-8000-000000000000')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(404);
 
     const listRes = await request(app.getHttpServer())
       .get('/invoices')
