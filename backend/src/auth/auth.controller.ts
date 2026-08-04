@@ -24,7 +24,10 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  @ApiOperation({ summary: 'Authenticate user and return JWT' })
+  @ApiOperation({
+    summary: 'Authenticate user and return JWT',
+    description: 'Returned user object does not include createdAt',
+  })
   @ApiCreatedResponse({
     description: 'Login successful',
     type: LoginResponseDto,
@@ -40,7 +43,10 @@ export class AuthController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Return current authenticated user profile' })
+  @ApiOperation({
+    summary: 'Return current authenticated user profile',
+    description: 'Includes createdAt (ISO datetime)',
+  })
   @ApiOkResponse({ type: UserProfileResponseDto })
   @ApiUnauthorizedResponse({ type: ErrorResponseDto })
   me(@CurrentUser() user: AuthUser) {

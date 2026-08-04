@@ -10,7 +10,10 @@ export class UserProfileResponseDto {
   @ApiProperty({ example: '101 Digital Reviewer' })
   fullname!: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description: 'Present on GET /auth/me; omitted from login response user',
+    example: '2026-01-01T00:00:00.000Z',
+  })
   createdAt?: string;
 }
 
@@ -66,7 +69,10 @@ export class InvoiceResponseDto {
   @ApiProperty({ example: '2026-07-03' })
   dueDate!: string;
 
-  @ApiProperty({ example: 'AUD' })
+  @ApiProperty({
+    example: 'AUD',
+    enum: ['AUD', 'USD', 'GBP', 'EUR', 'SGD', 'VND'],
+  })
   currency!: string;
 
   @ApiProperty({ example: 'AU$' })
@@ -75,7 +81,10 @@ export class InvoiceResponseDto {
   @ApiPropertyOptional({ nullable: true })
   description?: string | null;
 
-  @ApiProperty({ enum: ['Draft', 'Pending', 'Paid', 'Overdue'] })
+  @ApiProperty({
+    enum: ['Draft', 'Pending', 'Paid', 'Overdue'],
+    description: 'Overdue is derived at read time when unpaid and past due',
+  })
   status!: string;
 
   @ApiProperty()
@@ -113,7 +122,7 @@ export class PagingDto {
   @ApiProperty({ example: 1 })
   page!: number;
 
-  @ApiProperty({ example: 10 })
+  @ApiProperty({ example: 15 })
   pageSize!: number;
 
   @ApiProperty({ example: 100 })

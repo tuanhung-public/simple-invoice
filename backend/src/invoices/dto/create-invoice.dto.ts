@@ -27,7 +27,10 @@ function trimOptionalString({ value }: { value: unknown }) {
 }
 
 class CreateInvoiceItemDto {
-  @ApiProperty({ example: 'Honda RC150' })
+  @ApiProperty({
+    example: 'Honda RC150',
+    description: 'Trimmed; whitespace-only rejected',
+  })
   @Transform(trimString)
   @IsString()
   @IsNotEmpty()
@@ -47,13 +50,19 @@ class CreateInvoiceItemDto {
 }
 
 export class CreateInvoiceDto {
-  @ApiProperty({ example: 'Paul' })
+  @ApiProperty({
+    example: 'Paul',
+    description: 'Trimmed; whitespace-only rejected',
+  })
   @Transform(trimString)
   @IsString()
   @IsNotEmpty()
   customerName!: string;
 
-  @ApiProperty({ example: 'paul@101digital.io' })
+  @ApiProperty({
+    example: 'paul@101digital.io',
+    description: 'Trimmed before validation',
+  })
   @Transform(trimString)
   @IsEmail()
   customerEmail!: string;
@@ -70,7 +79,10 @@ export class CreateInvoiceDto {
   @IsString()
   customerAddress?: string;
 
-  @ApiProperty({ example: 'IV1780488206995' })
+  @ApiProperty({
+    example: 'IV1780488206995',
+    description: 'Must be unique; trimmed; whitespace-only rejected',
+  })
   @Transform(trimString)
   @IsString()
   @IsNotEmpty()
@@ -86,11 +98,17 @@ export class CreateInvoiceDto {
   @IsDateString()
   invoiceDate!: string;
 
-  @ApiProperty({ example: '2026-07-03' })
+  @ApiProperty({
+    example: '2026-07-03',
+    description: 'Must be on or after invoiceDate',
+  })
   @IsDateString()
   dueDate!: string;
 
-  @ApiProperty({ example: 'AUD', enum: ['AUD', 'USD', 'GBP', 'EUR', 'SGD'] })
+  @ApiProperty({
+    example: 'AUD',
+    enum: ['AUD', 'USD', 'GBP', 'EUR', 'SGD', 'VND'],
+  })
   @IsString()
   @IsIn(['AUD', 'USD', 'GBP', 'EUR', 'SGD', 'VND'])
   currency!: string;
@@ -106,7 +124,13 @@ export class CreateInvoiceDto {
   @Type(() => CreateInvoiceItemDto)
   item!: CreateInvoiceItemDto;
 
-  @ApiPropertyOptional({ example: 10, default: 10, minimum: 0, maximum: 1000 })
+  @ApiPropertyOptional({
+    example: 10,
+    default: 10,
+    minimum: 0,
+    maximum: 1000,
+    description: 'Percent; omitted → 10',
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
@@ -114,7 +138,13 @@ export class CreateInvoiceDto {
   @Max(1000)
   taxPercent?: number;
 
-  @ApiPropertyOptional({ example: 0, default: 0 })
+  @ApiPropertyOptional({
+    example: 0,
+    default: 0,
+    minimum: 0,
+    description:
+      'Absolute amount; omitted → 0. Must not exceed subtotal + tax (totalAmount ≥ 0)',
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
