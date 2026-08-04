@@ -1,0 +1,23 @@
+# env / secrets
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# deps & build
+node_modules/
+dist/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# logs / OS
+*.log
+.DS_Store
+
+# tooling
+.vercel
+.agents
+.claude
+.windsurf

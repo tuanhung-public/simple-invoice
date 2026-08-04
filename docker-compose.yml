@@ -1,0 +1,7 @@
+# Convenience wrapper for local workspace use.
+# Reviewers should use the compose file inside `backend/` (see backend/README.md).
+#
+#   docker compose --env-file backend/.env up --build
+
+include:
+  - path: backend/docker-compose.yml
