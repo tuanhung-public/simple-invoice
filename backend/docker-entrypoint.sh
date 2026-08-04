@@ -2,4 +2,4 @@
 set -e
 npx prisma migrate deploy
 npx tsx prisma/seed.ts
-node dist/main.js
+node dist/src/main.js
