@@ -68,9 +68,25 @@ cd backend && docker compose up -d db && npx prisma migrate deploy && npm run se
 cd frontend && npm test
 ```
 
+## Why Next.js (frontend)
+
+The assessment requires a **React + TypeScript** frontend. **Next.js (App Router)** is used as that React application — not as a replacement for the NestJS API.
+
+| Reason | Detail |
+| ------ | ------ |
+| Spec fit | Still React + TypeScript; Vite/CRA would also be valid — Next is a deliberate framework choice on top of React |
+| Routing & layout | File-based routes map cleanly to the four flows (`/login`, `/invoices`, `/invoices/[id]`, `/invoices/new`) plus a shared authenticated shell |
+| Product shape | This is a signed-in invoice console calling a Nest REST API with a client-held JWT — App Router + client components fit that SPA-style UI without inventing a custom router |
+| Delivery | First-class TypeScript, production `next build`, and a straightforward Dockerfile for Compose |
+
+**What we are not claiming:** SEO/SSR as the main driver. Invoice data and totals stay on the **NestJS** backend; the UI does not treat client-side math as source of truth.
+
+More architecture notes: [`docs/technical-design/`](./docs/technical-design/).
+
 ## Architecture / assumptions
 
-See [`backend/README.md`](./backend/README.md).
+- Monorepo; root `docker compose up` starts frontend, API, and database.
+- See [`backend/README.md`](./backend/README.md) and [`docs/technical-design/`](./docs/technical-design/) for design decisions (Customer table, Overdue derivation, API contract, etc.).
 
 ## Known limitations
 

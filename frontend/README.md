@@ -1,24 +1,33 @@
 # SimpleInvoice Frontend
 
-Next.js (App Router) + Ant Design frontend for SimpleInvoice.
+Next.js (App Router) + Ant Design + TanStack Query frontend for SimpleInvoice.
 
-> Full-stack Docker Compose lives in the **backend** repository and expects this repo as a sibling folder named `frontend`.
+## Why Next.js
 
-## Clone with backend (recommended)
+The assessment asks for **React + TypeScript**. Next.js is that React app with App Router — not a substitute for the NestJS API.
+
+- **Spec fit** — still React + TypeScript; Next is a framework choice on top of React
+- **Routes & layout** — `/login`, `/invoices`, `/invoices/[id]`, `/invoices/new` plus a shared authenticated shell map cleanly to the file system
+- **Product shape** — signed-in SPA calling Nest with a client JWT; client components + App Router fit without a custom router
+- **Delivery** — TypeScript, `next build`, and a simple Docker image for root Compose
+
+We are **not** choosing Next primarily for SEO/SSR. Totals and Overdue stay on the NestJS backend.
+
+See also the root [`README.md`](../README.md) and [`docs/technical-design/`](../docs/technical-design/).
+
+## Run
+
+Prefer root Compose from the monorepo:
 
 ```bash
-mkdir simple-invoice && cd simple-invoice
-git clone <BACKEND_REPO_URL> backend
-git clone <FRONTEND_REPO_URL> frontend
-cd backend
-cp .env.example .env
-docker compose up --build
+# from repository root
+docker compose up
 ```
 
 App: http://localhost:3000  
 Login: `reviewer@101digital.io` / `Password123!`
 
-## Run locally (backend already running)
+### Local only (API already running)
 
 ```bash
 cp .env.example .env.local
