@@ -58,7 +58,7 @@ export default function InvoiceDetailPage() {
     return (
       <div className="si-detail-page">
         <BackToList />
-        <Alert type="error" showIcon message="Invoice not found" />
+        <Alert type="error" showIcon title="Invoice not found" />
       </div>
     );
   }

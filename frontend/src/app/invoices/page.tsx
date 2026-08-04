@@ -94,6 +94,7 @@ function CopyInvoiceButton({ value }: { value: string }) {
 }
 
 export default function InvoicesPage() {
+  const { message } = App.useApp();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
   const [keyword, setKeyword] = useState('');
@@ -336,6 +337,10 @@ export default function InvoicesPage() {
             placeholder={['Invoice date from', 'To']}
             allowClear
             onChange={(value) => {
+              if (value?.[0] && value?.[1] && value[0].isAfter(value[1], 'day')) {
+                message.warning('From date must be on or before to date');
+                return;
+              }
               setPage(1);
               setRange(value);
             }}

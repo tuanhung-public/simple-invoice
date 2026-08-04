@@ -1066,6 +1066,10 @@ a.si-detail-accent:hover {
   margin-top: 16px;
 }
 
+.si-create-alert {
+  margin-top: 16px;
+}
+
 .si-create-btn-cancel {
   height: 40px;
   padding: 0 16px;

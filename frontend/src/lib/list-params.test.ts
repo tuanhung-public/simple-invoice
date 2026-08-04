@@ -5,7 +5,7 @@ describe('buildInvoiceListParams', () => {
   it('includes pagination and sorting defaults', () => {
     expect(buildInvoiceListParams({})).toEqual({
       page: 1,
-      pageSize: 10,
+      pageSize: 15,
       sortBy: 'invoiceDate',
       ordering: 'DESC',
     });

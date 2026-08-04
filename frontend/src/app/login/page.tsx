@@ -52,7 +52,7 @@ export default function LoginPage() {
           Sign in to manage invoices
         </Typography.Paragraph>
         {error ? (
-          <Alert type="error" message={error} style={{ marginBottom: 16 }} showIcon />
+          <Alert type="error" title={error} style={{ marginBottom: 16 }} showIcon />
         ) : null}
         <Form layout="vertical" onFinish={onFinish} requiredMark={false}>
           <Form.Item

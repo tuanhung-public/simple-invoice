@@ -21,6 +21,11 @@ export function resolveAuthRedirect(
   pathname: string,
   hasToken: boolean,
 ): '/login' | '/invoices' | null {
+  // Root has no server-side auth signal; never land guests on /invoices first.
+  if (pathname === '/') {
+    return hasToken ? '/invoices' : '/login';
+  }
+
   const isLogin = pathname === '/login';
   if (!hasToken && !isLogin) return '/login';
   if (hasToken && isLogin) return '/invoices';

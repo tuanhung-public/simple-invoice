@@ -8,9 +8,13 @@ import {
 } from '@testing-library/react';
 import { App, ConfigProvider } from 'antd';
 import LoginPage from '@/app/login/page';
+import { login } from '@/lib/api';
+import { setToken } from '@/lib/auth';
+
+const replace = vi.fn();
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+  useRouter: () => ({ replace, push: vi.fn() }),
 }));
 
 vi.mock('@/lib/api', () => ({
@@ -27,6 +31,7 @@ vi.mock('@/lib/auth', async () => {
 
 afterEach(() => {
   cleanup();
+  vi.clearAllMocks();
 });
 
 function renderLogin() {
@@ -55,5 +60,58 @@ describe('LoginPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/email is required/i)).toBeInTheDocument();
     });
+    expect(login).not.toHaveBeenCalled();
+  });
+
+  it('stores token and navigates on successful login', async () => {
+    vi.mocked(login).mockResolvedValue({
+      accessToken: 'token-abc',
+      user: {
+        id: 'u1',
+        email: 'reviewer@101digital.io',
+        fullname: 'Reviewer',
+      },
+    });
+
+    renderLogin();
+    fireEvent.change(screen.getByPlaceholderText(/reviewer@101digital.io/i), {
+      target: { value: 'reviewer@101digital.io' },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/^password$/i), {
+      target: { value: 'Password123!' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Login' }));
+
+    await waitFor(() => {
+      expect(login).toHaveBeenCalledWith(
+        'reviewer@101digital.io',
+        'Password123!',
+      );
+      expect(setToken).toHaveBeenCalledWith('token-abc');
+      expect(replace).toHaveBeenCalledWith('/invoices');
+    });
+  });
+
+  it('shows API error when credentials are rejected', async () => {
+    vi.mocked(login).mockRejectedValue({
+      response: { data: { message: 'Invalid email or password' } },
+    });
+
+    renderLogin();
+    fireEvent.change(screen.getByPlaceholderText(/reviewer@101digital.io/i), {
+      target: { value: 'reviewer@101digital.io' },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/^password$/i), {
+      target: { value: 'wrong-password' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Login' }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/invalid email or password/i),
+      ).toBeInTheDocument();
+    });
+    expect(setToken).not.toHaveBeenCalled();
+    expect(replace).not.toHaveBeenCalled();
   });
 });

@@ -6,6 +6,7 @@ import { buildCreateInvoicePayload } from '@/lib/create-invoice-payload';
 import { ArrowLeftOutlined, PlusOutlined } from '@ant-design/icons';
 import {
   App,
+  Alert,
   DatePicker,
   Form,
   Input,
@@ -71,15 +72,21 @@ export default function CreateInvoicePage() {
   const currency = Form.useWatch('currency', form) ?? initialValues.currency;
   const itemQuantity = Form.useWatch('itemQuantity', form) ?? 0;
   const itemRate = Form.useWatch('itemRate', form) ?? 0;
-  const taxPercent = Form.useWatch('taxPercent', form) ?? 0;
-  const discount = Form.useWatch('discount', form) ?? 0;
+  const taxPercent = Form.useWatch('taxPercent', form);
+  const discount = Form.useWatch('discount', form);
+  const dueDate = Form.useWatch('dueDate', form);
 
   const symbol = CURRENCY_SYMBOLS[currency] ?? `${currency} `;
   const totals = useMemo(() => {
     const qty = Number(itemQuantity) || 0;
     const rate = Number(itemRate) || 0;
-    const taxPct = Number(taxPercent) || 0;
-    const disc = Number(discount) || 0;
+    // Align with server defaults: tax 10%, discount 0 when unset.
+    const taxPct =
+      taxPercent == null || Number.isNaN(Number(taxPercent))
+        ? 10
+        : Number(taxPercent);
+    const disc =
+      discount == null || Number.isNaN(Number(discount)) ? 0 : Number(discount);
     const subTotal = roundMoney(qty * rate);
     const taxAmount = roundMoney(subTotal * (taxPct / 100));
     const discountAmount = roundMoney(disc);
@@ -87,12 +94,30 @@ export default function CreateInvoicePage() {
     return { subTotal, taxAmount, discountAmount, totalAmount, taxPct };
   }, [itemQuantity, itemRate, taxPercent, discount]);
 
+  const dueDateInPast = Boolean(
+    dueDate && dayjs.isDayjs(dueDate) && dueDate.isBefore(dayjs(), 'day'),
+  );
+  const discountTooHigh = totals.totalAmount < 0;
+
   const onFinish = async (values: CreateForm) => {
+    if (discountTooHigh) {
+      message.error('Discount cannot exceed subtotal plus tax');
+      return;
+    }
+
     setLoading(true);
     try {
       await createInvoice(
         buildCreateInvoicePayload({
           ...values,
+          customerName: values.customerName.trim(),
+          customerEmail: values.customerEmail.trim(),
+          customerMobile: values.customerMobile?.trim() || undefined,
+          customerAddress: values.customerAddress?.trim() || undefined,
+          invoiceNumber: values.invoiceNumber.trim(),
+          invoiceReference: values.invoiceReference?.trim() || undefined,
+          description: values.description?.trim() || undefined,
+          itemName: values.itemName.trim(),
           invoiceDate: values.invoiceDate.format('YYYY-MM-DD'),
           dueDate: values.dueDate.format('YYYY-MM-DD'),
         }),
@@ -136,7 +161,13 @@ export default function CreateInvoicePage() {
                 <Form.Item
                   label="Invoice number"
                   name="invoiceNumber"
-                  rules={[{ required: true, message: 'Invoice number is required' }]}
+                  rules={[
+                    {
+                      required: true,
+                      whitespace: true,
+                      message: 'Invoice number is required',
+                    },
+                  ]}
                 >
                   <Input placeholder="IV-XXXX" />
                 </Form.Item>
@@ -205,7 +236,13 @@ export default function CreateInvoicePage() {
                 <Form.Item
                   label="Name"
                   name="customerName"
-                  rules={[{ required: true, message: 'Name is required' }]}
+                  rules={[
+                    {
+                      required: true,
+                      whitespace: true,
+                      message: 'Name is required',
+                    },
+                  ]}
                 >
                   <Input />
                 </Form.Item>
@@ -213,7 +250,11 @@ export default function CreateInvoicePage() {
                   label="Email"
                   name="customerEmail"
                   rules={[
-                    { required: true, message: 'Email is required' },
+                    {
+                      required: true,
+                      whitespace: true,
+                      message: 'Email is required',
+                    },
                     { type: 'email', message: 'Enter a valid email' },
                   ]}
                 >
@@ -240,7 +281,13 @@ export default function CreateInvoicePage() {
                 <Form.Item
                   label="Item name"
                   name="itemName"
-                  rules={[{ required: true, message: 'Item name is required' }]}
+                  rules={[
+                    {
+                      required: true,
+                      whitespace: true,
+                      message: 'Item name is required',
+                    },
+                  ]}
                   className="si-create-item-flush"
                 >
                   <Input />
@@ -267,10 +314,30 @@ export default function CreateInvoicePage() {
             <section className="si-create-card">
               <h2 className="si-create-card-title">Amounts</h2>
               <div className="si-create-row si-create-row-2">
-                <Form.Item label="Tax (%)" name="taxPercent">
-                  <InputNumber min={0} style={{ width: '100%' }} />
+                <Form.Item
+                  label="Tax (%)"
+                  name="taxPercent"
+                  rules={[
+                    {
+                      type: 'number',
+                      min: 0,
+                      max: 1000,
+                      message: 'Tax must be between 0% and 1000%',
+                    },
+                  ]}
+                >
+                  <InputNumber min={0} max={1000} style={{ width: '100%' }} />
                 </Form.Item>
-                <Form.Item label="Discount" name="discount">
+                <Form.Item
+                  label="Discount"
+                  name="discount"
+                  validateStatus={discountTooHigh ? 'error' : undefined}
+                  help={
+                    discountTooHigh
+                      ? 'Discount cannot exceed subtotal plus tax'
+                      : undefined
+                  }
+                >
                   <InputNumber min={0} style={{ width: '100%' }} />
                 </Form.Item>
               </div>
@@ -299,6 +366,15 @@ export default function CreateInvoicePage() {
           </div>
         </div>
 
+        {dueDateInPast ? (
+          <Alert
+            type="warning"
+            showIcon
+            className="si-create-alert"
+            title="Past due date — this draft will appear as Overdue right away"
+          />
+        ) : null}
+
         <div className="si-create-actions">
           <button
             type="button"
@@ -307,7 +383,11 @@ export default function CreateInvoicePage() {
           >
             Cancel
           </button>
-          <button type="submit" className="si-btn-primary si-create-btn-submit" disabled={loading}>
+          <button
+            type="submit"
+            className="si-btn-primary si-create-btn-submit"
+            disabled={loading || discountTooHigh}
+          >
             <PlusOutlined aria-hidden />
             {loading ? 'Creating…' : 'Create Invoice'}
           </button>

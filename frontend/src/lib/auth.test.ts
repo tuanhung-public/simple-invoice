@@ -42,4 +42,9 @@ describe('resolveAuthRedirect', () => {
   it('does not redirect authenticated users already on app pages', () => {
     expect(resolveAuthRedirect('/invoices', true)).toBeNull();
   });
+
+  it('routes / by token without landing guests on the list', () => {
+    expect(resolveAuthRedirect('/', false)).toBe('/login');
+    expect(resolveAuthRedirect('/', true)).toBe('/invoices');
+  });
 });

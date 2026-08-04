@@ -12,7 +12,7 @@ export type ListParamInput = {
 export function buildInvoiceListParams(input: ListParamInput) {
   const params: Record<string, string | number> = {
     page: input.page ?? 1,
-    pageSize: input.pageSize ?? 10,
+    pageSize: input.pageSize ?? 15,
     sortBy: input.sortBy ?? 'invoiceDate',
     ordering: input.ordering ?? 'DESC',
   };
