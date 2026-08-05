@@ -13,7 +13,10 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY package*.json ./
 COPY prisma ./prisma
-RUN npm ci --omit=dev && npm install prisma tsx dotenv
+# prisma + tsx needed by docker-entrypoint (migrate/seed); clean npm cache to shrink image
+RUN npm ci --omit=dev \
+  && npm install prisma tsx dotenv \
+  && npm cache clean --force
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
